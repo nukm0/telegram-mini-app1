@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Инициализация Firebase
-    await initFirebase();
+    await initSupabase();
     
     // Загрузка объявлений
     await loadAds();
@@ -68,18 +68,23 @@ function initTelegramWebApp() {
     }
 }
 
-// Инициализация Firebase
-async function initFirebase() {
+// Инициализация Supabase
+async function initSupabase() {
     try {
-        if (!firebaseConfig || !firebaseConfig.apiKey) {
-            console.error('Firebase конфигурация не найдена');
+        if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+            console.error('Supabase конфигурация не найдена в CONFIG');
             return;
         }
         
-        firebase.initializeApp(firebaseConfig);
-        console.log('Firebase инициализирован');
+        // Создаём клиент Supabase
+        window.supabaseClient = supabase.createClient(
+            CONFIG.SUPABASE_URL,
+            CONFIG.SUPABASE_ANON_KEY
+        );
+        
+        console.log('Supabase инициализирован');
     } catch (error) {
-        console.error('Ошибка инициализации Firebase:', error);
+        console.error('Ошибка инициализации Supabase:', error);
     }
 }
 
