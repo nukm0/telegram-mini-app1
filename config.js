@@ -1,7 +1,7 @@
 const CONFIG = {
     // =================== SUPABASE ===================
-   SUPABASE_URL: 'https://etvzgxcsfsirkwbdbyr.supabase.co',
-   SUPABASE_ANON_KEY: 'sb_publishable_Zt3YoNECFFaE8Bj1AmuPQ_UTizVNzk'
+    SUPABASE_URL: 'https://etvzgxcsfsirkwbdbyr.supabase.co',
+    SUPABASE_ANON_KEY: 'sb_publishable_Zt3YoNECFFaE8Bj1AmuPQ_UTizVNzk',
     
     // =================== TELEGRAM ===================
     TELEGRAM_BOT_TOKEN: '8532550864:AAFrwxWfJF836SVnDGVa73xT5BlrfgapWVw',
@@ -22,7 +22,7 @@ const CONFIG = {
     
     // =================== ОГРАНИЧЕНИЯ ===================
     MAX_IMAGES_PER_AD: 3,
-    MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+    MAX_FILE_SIZE: 5 * 1024 * 1024,
     AD_LIFETIME_DAYS: 14,
     
     // =================== КАТЕГОРИИ ===================
@@ -40,7 +40,7 @@ const CONFIG = {
         'buy': 'Покупка'
     },
     
-    // =================== ЦВЕТА (твоя палитра) ===================
+    // =================== ЦВЕТА ===================
     COLORS: {
         PRIMARY_BG: '#18193c',
         CARD_BG: '#23244d',
