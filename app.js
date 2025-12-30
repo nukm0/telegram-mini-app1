@@ -1,6 +1,6 @@
 // Конфигурация приложения
 const APP_CONFIG = {
-    API_URL: 'https://telegram-market-vape.vercel.app/api',
+    API_URL: '',
     VAPEMARKET_VERSION: '1.0.0',
     MAX_IMAGES: 3,
     MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
