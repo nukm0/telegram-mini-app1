@@ -66,28 +66,17 @@ let adminMode = false;
 document.addEventListener('DOMContentLoaded', async function() {
     console.log(`${APP_CONFIG.APP_NAME} v${APP_CONFIG.VERSION}`);
 
-    // Проверка Telegram WebApp
-    if (window.Telegram && Telegram.WebApp) {
-        initTelegramWebApp();
-    } else {
-        console.log('Telegram WebApp не обнаружен, режим браузера');
-        currentUser = {
-            id: 'browser_user_001',
-            first_name: 'Гость',
-            username: 'guest_user',
-            isAdmin: false
-        };
-        updateUIForUser();
-    }
-
     // Инициализация Supabase
     await initSupabase();
 
-    // Загрузка объявлений
-    await loadAds();
-
     // Настройка обработчиков событий
     setupEventListeners();
+
+    // Инициализация Telegram
+    initTelegramWebApp();
+
+    // Загрузка объявлений
+    await loadAds();
 });
 
 // ==================== ИНИЦИАЛИЗАЦИЯ SUPABASE ====================
@@ -105,6 +94,13 @@ async function initSupabase() {
         );
 
         console.log('Supabase инициализирован');
+        
+        // Создаем таблицу для логов если её нет
+        await supabaseClient.from('debug_logs').insert([{
+            message: 'Supabase инициализирован',
+            created_at: new Date().toISOString()
+        }]).catch(() => {});
+        
     } catch (error) {
         console.error('Ошибка инициализации Supabase:', error);
     }
@@ -112,53 +108,131 @@ async function initSupabase() {
 
 // ==================== ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP ====================
 function initTelegramWebApp() {
-    console.log('🔍 Проверяем наличие Telegram WebApp...');
-
-    const tg = window.Telegram?.WebApp;
-
-    if (tg) {
-        console.log('✅ Telegram WebApp обнаружен');
-        tg.ready();
-        tg.expand();
-
-        const tgUser = tg.initDataUnsafe?.user;
-        console.log('👤 Данные пользователя Telegram:', tgUser);
-
-        if (tgUser) {
-            // ВАЖНО: сохраняем ID как ЧИСЛО (не строку)
-            currentUser = {
-                id: tgUser.id,  // ← ЧИСЛО, БЕЗ .toString()!
-                first_name: tgUser.first_name,
-                username: tgUser.username || ('user_' + tgUser.id),
-                photo_url: tgUser.photo_url,
-                language_code: tgUser.language_code,
-                isPremium: tgUser.is_premium || false,
-                isAdmin: tgUser.id.toString() === '998579758'
-            };
-
-            console.log('👤 Создан currentUser:', currentUser);
-            console.log('📊 Тип ID:', typeof currentUser.id, 'Значение:', currentUser.id);
-
-            adminMode = currentUser.isAdmin;
-            updateUIForUser();
-
-            // Регистрация пользователя
-            console.log('🔄 Начинаем регистрацию пользователя в БД...');
-            registerUser(currentUser).then(success => {
-                if (success) {
-                    console.log('🎉 Пользователь зарегистрирован в системе');
-                } else {
-                    console.warn('⚠️ Пользователь не зарегистрирован в БД');
-                }
-            });
-
-        } else {
-            console.warn('⚠️ Пользователь Telegram не найден в initData');
-        }
-    } else {
-        console.log('🌐 Telegram WebApp не обнаружен, режим браузера');
+    console.log('🔍 Инициализация Telegram WebApp...');
+    
+    // На телефоне объект может быть в window.Telegram.WebApp
+    // или window.TelegramWebApp, или window.parent.Telegram.WebApp
+    const tg = window.Telegram?.WebApp || window.TelegramWebApp || window.parent?.Telegram?.WebApp;
+    
+    if (!tg) {
+        console.error('❌ Telegram WebApp объект не найден!');
+        console.log('Проверяемые объекты:', {
+            'window.Telegram': window.Telegram,
+            'window.TelegramWebApp': window.TelegramWebApp,
+            'window.parent.Telegram': window.parent?.Telegram
+        });
+        
+        // Режим гостя для отладки
         currentUser = {
-            id: 'browser_user_001',
+            id: 'phone_guest_' + Date.now(),
+            first_name: 'Гость',
+            username: 'guest_user',
+            isAdmin: false
+        };
+        updateUIForUser();
+        return;
+    }
+    
+    console.log('✅ Telegram объект найден');
+    console.log('📱 Платформа:', tg.platform || 'unknown');
+    console.log('Версия:', tg.version || 'unknown');
+    
+    // Инициализация WebApp
+    if (typeof tg.ready === 'function') {
+        tg.ready();
+        console.log('Telegram ready вызван');
+    }
+    
+    if (typeof tg.expand === 'function') {
+        tg.expand();
+        console.log('Telegram expand вызван');
+    }
+    
+    // Получаем данные пользователя РАЗНЫМИ СПОСОБАМИ
+    let tgUser = null;
+    
+    // СПОСОБ 1: initDataUnsafe (самый частый)
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        tgUser = tg.initDataUnsafe.user;
+        console.log('👤 Пользователь из initDataUnsafe:', tgUser);
+    }
+    // СПОСОБ 2: initData строка (парсим вручную)
+    else if (tg.initData) {
+        console.log('📋 initData строка:', tg.initData);
+        try {
+            // Парсим параметры URL
+            const params = new URLSearchParams(tg.initData);
+            const userStr = params.get('user');
+            if (userStr) {
+                tgUser = JSON.parse(decodeURIComponent(userStr));
+                console.log('👤 Пользователь из initData:', tgUser);
+            }
+        } catch (e) {
+            console.error('❌ Ошибка парсинга initData:', e);
+        }
+    }
+    // СПОСОБ 3: Query параметры URL
+    else {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tgWebAppData = urlParams.get('tgWebAppData');
+            if (tgWebAppData) {
+                const data = JSON.parse(decodeURIComponent(tgWebAppData));
+                tgUser = data.user;
+                console.log('👤 Пользователь из URL параметров:', tgUser);
+            }
+        } catch (e) {
+            console.error('❌ Ошибка парсинга URL:', e);
+        }
+    }
+    
+    if (tgUser && tgUser.id) {
+        // ВАЖНО: Telegram ID должен быть ЧИСЛОМ для вашей таблицы users (int8)
+        const telegramId = Number(tgUser.id);
+        
+        currentUser = {
+            id: telegramId, // ЧИСЛО
+            first_name: tgUser.first_name || 'Пользователь',
+            username: tgUser.username || ('user_' + telegramId),
+            photo_url: tgUser.photo_url,
+            language_code: tgUser.language_code || 'ru',
+            isPremium: tgUser.is_premium || false,
+            isAdmin: String(tgUser.id) === '998579758'
+        };
+        
+        console.log('👤 Создан currentUser:', currentUser);
+        console.log('📊 Telegram ID как число:', telegramId, 'Тип:', typeof telegramId);
+        
+        adminMode = currentUser.isAdmin;
+        updateUIForUser();
+        
+        // Регистрируем пользователя с задержкой (иногда нужно время)
+        setTimeout(async () => {
+            console.log('🔄 Запуск регистрации пользователя...');
+            const success = await registerUser(currentUser);
+            
+            if (success) {
+                console.log('✅ Пользователь зарегистрирован в системе');
+                if (tg.HapticFeedback?.notificationOccurred) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            } else {
+                console.warn('⚠️ Пользователь не зарегистрирован');
+            }
+        }, 1000);
+        
+    } else {
+        console.warn('⚠️ Данные пользователя не получены');
+        console.log('Доступные данные Telegram:', {
+            initData: tg.initData,
+            initDataUnsafe: tg.initDataUnsafe,
+            platform: tg.platform,
+            version: tg.version
+        });
+        
+        // Гостевая сессия
+        currentUser = {
+            id: 'guest_phone_' + Date.now(),
             first_name: 'Гость',
             username: 'guest_user',
             isAdmin: false
@@ -167,72 +241,69 @@ function initTelegramWebApp() {
     }
 }
 
-// ==================== РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ (ИСПРАВЛЕННАЯ) ====================
+// ==================== РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ (ОБНОВЛЁННАЯ) ====================
 async function registerUser(userData) {
-    console.log('📝 Регистрация пользователя Telegram:', userData);
-
+    console.log('📝 Начало регистрации пользователя:', userData);
+    
     if (!supabaseClient) {
         console.error('❌ Supabase client не инициализирован');
         return false;
     }
-
+    
     if (!userData || !userData.id) {
         console.error('❌ Нет данных пользователя');
         return false;
     }
-
+    
     try {
-        // ВАЖНО: Telegram ID должен быть ЧИСЛОМ для таблицы users (int8)
-        const telegramId = userData.id;
+        // ВАЖНО: Telegram ID должен быть ЧИСЛОМ
+        const telegramId = Number(userData.id);
         
         console.log('🔍 Проверка Telegram ID:', {
-            значение: telegramId,
-            тип: typeof telegramId,
-            являетсяЧислом: typeof telegramId === 'number' && !isNaN(telegramId)
+            исходное: userData.id,
+            число: telegramId,
+            тип_исходного: typeof userData.id,
+            тип_числа: typeof telegramId,
+            isValid: !isNaN(telegramId) && typeof telegramId === 'number'
         });
-
-        // Проверяем, что это число (для Telegram пользователей)
-        if (typeof telegramId !== 'number' || isNaN(telegramId)) {
-            console.error('❌ Telegram ID не является числом:', telegramId);
-            
-            // Если это гость (browser_user_001), пропускаем регистрацию
-            if (typeof telegramId === 'string' && telegramId.includes('browser_user')) {
-                console.log('👤 Гостевая сессия, пропускаем регистрацию');
-                return true;
-            }
+        
+        // Проверяем, что это валидное число
+        if (isNaN(telegramId) || typeof telegramId !== 'number') {
+            console.error('❌ Telegram ID не является числом:', userData.id);
             return false;
         }
-
-        console.log('🔧 Telegram ID (число):', telegramId);
-
-        // Подготавливаем данные для вашей таблицы users
+        
+        // Подготавливаем данные для таблицы users
         const userRecord = {
-            telegram_id: telegramId,  // int8 - ЧИСЛО (самое важное!)
+            telegram_id: telegramId,  // int8 - ЧИСЛО
             username: userData.username || ('user_' + telegramId),
             first_name: userData.first_name || 'Пользователь',
-            rating: 4.5,            // Значение по умолчанию из вашей таблицы
-            is_verified: false,     // Значение по умолчанию из вашей таблицы
+            rating: 4.5,
+            is_verified: false,
             is_admin: userData.isAdmin || false,
-            deals_count: 0,         // Начинаем с 0 сделок
-            likes_count: 0,         // Начинаем с 0 лайков
+            deals_count: 0,
+            likes_count: 0,
             created_at: new Date().toISOString()
         };
-
+        
         console.log('📤 Отправляем данные в Supabase:', userRecord);
-
-        // Выполняем upsert (обновить или создать)
+        
+        // Выполняем upsert
         const { data, error } = await supabaseClient
             .from('users')
             .upsert(userRecord, {
-                onConflict: 'telegram_id',  // Конфликт по telegram_id
+                onConflict: 'telegram_id',
                 ignoreDuplicates: false
             });
-
+        
         if (error) {
-            console.error('❌ Ошибка регистрации в Supabase:', error);
-            console.error('Детали ошибки:', error.message, error.code, error.details);
+            console.error('❌ Ошибка Supabase:', {
+                код: error.code,
+                сообщение: error.message,
+                детали: error.details
+            });
             
-            // Если ошибка RLS, подскажем решение
+            // Если ошибка RLS - подскажем решение
             if (error.code === '42501') {
                 console.error('🔧 РЕШЕНИЕ: Выполните в Supabase SQL Editor:');
                 console.error('ALTER TABLE users DISABLE ROW LEVEL SECURITY;');
@@ -240,10 +311,10 @@ async function registerUser(userData) {
             
             return false;
         }
-
-        console.log('✅ Пользователь успешно зарегистрирован:', data);
+        
+        console.log('✅ Пользователь успешно зарегистрирован! ID:', telegramId);
         return true;
-
+        
     } catch (error) {
         console.error('💥 Критическая ошибка при регистрации:', error);
         return false;
@@ -255,13 +326,13 @@ async function loadAds() {
     try {
         const adsGrid = document.getElementById('adsGrid');
         if (!adsGrid) return;
-
+        
         // Показываем загрузку
         adsGrid.innerHTML = '<div class="loading">Загрузка объявлений...</div>';
-
+        
         // Пробуем загрузить из Supabase
         let ads = [];
-
+        
         if (supabaseClient) {
             const { data, error } = await supabaseClient
                 .from('ads')
@@ -269,19 +340,20 @@ async function loadAds() {
                 .eq('is_active', true)
                 .order('created_at', { ascending: false })
                 .limit(50); // Увеличили лимит
-
+            
             if (!error && data) {
                 ads = data;
             }
         }
-
-        // Если нет данных из Supabase, используем мок-данные
+        
+        // Если нет данных, используем мок-данные
         if (ads.length === 0) {
             ads = getMockAds();
         }
-
+        
         console.log(`📊 Загружено объявлений: ${ads.length}`);
         renderAds(ads);
+        
     } catch (error) {
         console.error('Ошибка загрузки объявлений:', error);
         document.getElementById('adsGrid').innerHTML = 
@@ -289,58 +361,56 @@ async function loadAds() {
     }
 }
 
-// ==================== МОК-ДАННЫЕ ДЛЯ ТЕСТИРОВАНИЯ ====================
+// ==================== МОК-ДАННЫЕ ====================
 function getMockAds() {
-    return [
-        {
-            id: '1',
-            title: 'Caliburn G3',
-            price: 1500,
-            description: 'Новое устройство, в упаковке. Использовался 1 раз.',
-            category: 'devices',
-            type: 'sell',
-            images: [],
-            seller_id: 'seller1',
-            seller_name: 'Алексей',
-            rating: 4.7,
-            verified: true,
-            likes: 8,
-            dislikes: 2,
-            views: 124,
-            created_at: new Date().toISOString()
-        }
-    ];
+    return [{
+        id: '1',
+        title: 'Caliburn G3',
+        price: 1500,
+        description: 'Новое устройство, в упаковке. Использовался 1 раз.',
+        category: 'devices',
+        type: 'sell',
+        images: [],
+        seller_id: 'seller1',
+        seller_name: 'Алексей',
+        rating: 4.7,
+        verified: true,
+        likes: 8,
+        dislikes: 2,
+        views: 124,
+        created_at: new Date().toISOString()
+    }];
 }
 
 // ==================== ОТРИСОВКА ОБЪЯВЛЕНИЙ ====================
 function renderAds(ads) {
     const adsGrid = document.getElementById('adsGrid');
     if (!adsGrid) return;
-
+    
     if (!ads || ads.length === 0) {
         adsGrid.innerHTML = '<div class="empty">Объявлений пока нет</div>';
         return;
     }
-
+    
     adsGrid.innerHTML = ads.map(ad => `
         <div class="ad-card" data-id="${ad.id}" data-category="${ad.category}" data-type="${ad.type}">
             ${ad.type === 'buy' ? '<span class="ad-badge buy">Ищу</span>' : 
               ad.type === 'sell' ? '<span class="ad-badge sale">Продажа</span>' : ''}
-
+            
             <div class="ad-image">
                 ${ad.images && ad.images.length > 0 ? 
                     `<img src="${ad.images[0]}" alt="${ad.title}">` : 
                     '<div class="image-placeholder"><i class="fas fa-smoking"></i></div>'}
             </div>
-
+            
             <div class="ad-content">
                 <div class="ad-header">
                     <h3 class="ad-title">${ad.title}</h3>
                     <span class="ad-price">${ad.price} ₽</span>
                 </div>
-
+                
                 <p class="ad-description">${ad.description || 'Нет описания'}</p>
-
+                
                 <div class="ad-meta">
                     <span class="ad-category">${getCategoryName(ad.category)}</span>
                     <span class="ad-type">
@@ -349,7 +419,7 @@ function renderAds(ads) {
                         ${ad.verified ? '<i class="fas fa-check-circle verified-icon"></i>' : ''}
                     </span>
                 </div>
-
+                
                 <div class="ad-actions">
                     <button class="btn btn-icon" onclick="likeAd('${ad.id}')" title="Лайк">
                         <i class="fas fa-thumbs-up"></i>
@@ -371,7 +441,6 @@ function renderAds(ads) {
     `).join('');
 }
 
-// ==================== ПОЛУЧЕНИЕ НАЗВАНИЯ КАТЕГОРИИ ====================
 function getCategoryName(category) {
     const categories = {
         'liquids': 'Жидкости',
@@ -383,19 +452,17 @@ function getCategoryName(category) {
     return categories[category] || 'Другое';
 }
 
-// ==================== НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ ====================
+// ==================== НАСТРОЙКА ОБРАБОТЧИКОВ ====================
 function setupEventListeners() {
     // Фильтры
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-
-            const filter = this.dataset.filter;
-            filterAds(filter);
+            filterAds(this.dataset.filter);
         });
     });
-
+    
     // Поиск
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -403,7 +470,7 @@ function setupEventListeners() {
             searchAds(this.value);
         });
     }
-
+    
     // Создание объявления
     const createAdBtn = document.getElementById('createAdBtn');
     if (createAdBtn) {
@@ -415,14 +482,14 @@ function setupEventListeners() {
             showCreateAdModal();
         });
     }
-
+    
     // Модальные окна
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', function() {
             closeAllModals();
         });
     });
-
+    
     // Форма создания объявления
     const adForm = document.getElementById('adForm');
     if (adForm) {
@@ -433,10 +500,9 @@ function setupEventListeners() {
     }
 }
 
-// ==================== ФИЛЬТРАЦИЯ ОБЪЯВЛЕНИЙ ====================
+// ==================== ФИЛЬТРАЦИЯ ====================
 function filterAds(filter) {
     const adCards = document.querySelectorAll('.ad-card');
-
     adCards.forEach(card => {
         if (filter === 'all') {
             card.style.display = 'block';
@@ -447,20 +513,20 @@ function filterAds(filter) {
     });
 }
 
-// ==================== ПОИСК ОБЪЯВЛЕНИЙ ====================
+// ==================== ПОИСК ====================
 function searchAds(query) {
     const adCards = document.querySelectorAll('.ad-card');
     const searchTerm = query.toLowerCase().trim();
-
+    
     if (!searchTerm) {
         adCards.forEach(card => card.style.display = 'block');
         return;
     }
-
+    
     adCards.forEach(card => {
         const title = card.querySelector('.ad-title').textContent.toLowerCase();
         const description = card.querySelector('.ad-description').textContent.toLowerCase();
-
+        
         if (title.includes(searchTerm) || description.includes(searchTerm)) {
             card.style.display = 'block';
         } else {
@@ -469,14 +535,13 @@ function searchAds(query) {
     });
 }
 
-// ==================== ПОКАЗАТЬ МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ====================
+// ==================== МОДАЛЬНЫЕ ОКНА ====================
 function showCreateAdModal() {
     const modal = document.getElementById('createAdModal');
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
-// ==================== ЗАКРЫТЬ ВСЕ МОДАЛЬНЫЕ ОКНА ====================
 function closeAllModals() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.classList.remove('active');
@@ -484,32 +549,28 @@ function closeAllModals() {
     document.body.style.overflow = 'auto';
 }
 
-// ==================== СОЗДАНИЕ НОВОГО ОБЪЯВЛЕНИЯ ====================
+// ==================== СОЗДАНИЕ ОБЪЯВЛЕНИЯ ====================
 async function createNewAd() {
     console.log('🆕 Начинаем создание объявления...');
-
-    // 1. Проверка авторизации
+    
     if (!currentUser) {
         alert('❌ Для размещения объявления нужно авторизоваться');
-        console.error('Текущий пользователь не определен');
         return;
     }
-
+    
     console.log('👤 Текущий пользователь:', currentUser);
-    console.log('🆔 Telegram ID пользователя:', currentUser.id, 'Тип:', typeof currentUser.id);
-
-    // 2. Получаем данные из формы
+    console.log('🆔 ID:', currentUser.id, 'Тип:', typeof currentUser.id);
+    
     const form = document.getElementById('adForm');
     const formData = new FormData(form);
-
-    // 3. Подготавливаем данные для объявления
+    
     const adData = {
         title: formData.get('title'),
         type: formData.get('type'),
         category: formData.get('category'),
         price: parseInt(formData.get('price')) || 0,
         description: formData.get('description'),
-        seller_id: currentUser.id.toString(),  // Для таблицы ads это текст
+        seller_id: String(currentUser.id), // Для ads это текст
         seller_name: currentUser.first_name,
         is_active: true,
         created_at: new Date().toISOString(),
@@ -517,27 +578,26 @@ async function createNewAd() {
         likes: 0,
         dislikes: 0,
         views: 0,
-        images: []  // Пустой массив, а не строка!
+        images: [] // Массив, не строка
     };
-
+    
     console.log('📝 Данные объявления:', adData);
-
-    // 4. Проверяем, есть ли пользователь в БД (только для реальных Telegram пользователей)
+    
     if (supabaseClient) {
         try {
-            // Проверяем только REAL Telegram пользователей (ID состоит из цифр)
+            // Проверяем только реальных Telegram пользователей
             const isRealTelegramUser = typeof currentUser.id === 'number' && !isNaN(currentUser.id);
             
             if (isRealTelegramUser) {
-                // Только для реальных Telegram пользователей проверяем БД
+                // Проверяем существование пользователя
                 const { data: userData, error: userError } = await supabaseClient
                     .from('users')
                     .select('telegram_id')
-                    .eq('telegram_id', currentUser.id) // Уже число
+                    .eq('telegram_id', currentUser.id)
                     .single();
-
+                
                 if (userError || !userData) {
-                    console.warn('⚠️ Пользователь не найден в таблице users, пробуем зарегистрировать...');
+                    console.warn('⚠️ Пользователь не найден, пробуем зарегистрировать...');
                     const registered = await registerUser(currentUser);
                     if (!registered) {
                         console.error('❌ Не удалось зарегистрировать пользователя');
@@ -546,67 +606,63 @@ async function createNewAd() {
                     }
                 }
             } else {
-                // Для гостей (browser_user_001) просто продолжаем
                 console.log('👤 Гостевая сессия, пропускаем регистрацию');
             }
-
-            // 5. Сохраняем объявление
-            console.log('💾 Сохраняем объявление в таблицу ads...');
+            
+            // Сохраняем объявление
+            console.log('💾 Сохраняем объявление...');
             const { data, error } = await supabaseClient
                 .from('ads')
                 .insert([adData]);
-
+            
             if (error) {
-                console.error('❌ Ошибка сохранения объявления:', error);
-                alert('Ошибка при создании объявления: ' + error.message);
+                console.error('❌ Ошибка сохранения:', error);
+                alert('Ошибка: ' + error.message);
                 return;
             }
-
-            console.log('✅ Объявление успешно создано:', data);
+            
+            console.log('✅ Объявление создано:', data);
             alert('Объявление успешно создано!');
-
-            // 6. Обновляем интерфейс
+            
+            // Обновляем интерфейс
             closeAllModals();
             form.reset();
             await loadAds();
-
+            
         } catch (error) {
-            console.error('💥 Ошибка при создании объявления:', error);
-            alert('Произошла ошибка соединения');
+            console.error('💥 Ошибка:', error);
+            alert('Произошла ошибка');
         }
     } else {
-        console.log('📴 Supabase недоступен, демо-режим');
-        alert('Объявление создано (демо-режим)');
+        console.log('📴 Supabase недоступен');
+        alert('Объявление создано (демо)');
         closeAllModals();
         form.reset();
     }
 }
 
-// ==================== ЛАЙК ОБЪЯВЛЕНИЯ ====================
+// ==================== ЛАЙКИ/ДИЗЛАЙКИ ====================
 async function likeAd(adId) {
     if (!currentUser) {
         alert('Для оценки нужно авторизоваться');
         return;
     }
-
-    // Обновляем UI
+    
     const btn = document.querySelector(`[onclick="likeAd('${adId}')"]`);
     if (btn) {
         const countSpan = btn.querySelector('.count');
         countSpan.textContent = parseInt(countSpan.textContent) + 1;
     }
-
-    // Сохраняем в Supabase
+    
     if (supabaseClient) {
         try {
-            console.log('Лайк сохранён для объявления:', adId);
+            console.log('Лайк сохранён:', adId);
         } catch (error) {
             console.error('Ошибка сохранения лайка:', error);
         }
     }
 }
 
-// ==================== ДИЗЛАЙК ОБЪЯВЛЕНИЯ ====================
 async function dislikeAd(adId) {
     if (!currentUser) {
         alert('Для оценки нужно авторизоваться');
@@ -621,24 +677,22 @@ async function dislikeAd(adId) {
     
     if (supabaseClient) {
         try {
-            console.log('Дизлайк сохранён для объявления:', adId);
+            console.log('Дизлайк сохранён:', adId);
         } catch (error) {
             console.error('Ошибка сохранения дизлайка:', error);
         }
     }
 }
 
-// ==================== КОНТАКТ С ПРОДАВЦОМ ====================
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function contactSeller(adId) {
     alert(`Функция связи с продавцом для объявления ${adId}`);
 }
 
-// ==================== ПОКАЗАТЬ МОДАЛЬНОЕ ОКНО ЖАЛОБЫ ====================
 function showReportModal(adId) {
     alert(`Функция жалобы для объявления ${adId}`);
 }
 
-// ==================== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ПОЛЬЗОВАТЕЛЯ ====================
 function updateUIForUser() {
     const userAvatar = document.getElementById('userAvatar');
     if (userAvatar && currentUser) {
