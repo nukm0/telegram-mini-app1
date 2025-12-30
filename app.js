@@ -13,7 +13,53 @@ const APP_CONFIG = window.CONFIG || {
 let currentUser = null;
 let supabaseClient = null;
 let adminMode = false;
-
+// ==================== ПРОВЕРКА TELEGRAM ====================
+(function checkTelegramEnvironment() {
+    const isTelegramWebView = window.Telegram?.WebApp?.platform !== 'unknown';
+    const isTelegramWebApp = window.location.href.includes('t.me') || 
+                           window.location.href.includes('web.telegram.org');
+    
+    // Если не Telegram — показываем ошибку
+    if (!isTelegramWebView && !isTelegramWebApp) {
+        document.body.innerHTML = `
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background: #18193c;
+                color: white;
+                font-family: sans-serif;
+                text-align: center;
+                padding: 20px;
+            ">
+                <div>
+                    <h1 style="color: #7f41ef; margin-bottom: 20px;">
+                        <i class="fas fa-exclamation-triangle"></i> Доступ запрещён
+                    </h1>
+                    <p>Это приложение работает только в Telegram.</p>
+                    <p>Откройте его через бота:</p>
+                    <div style="
+                        background: #23244d;
+                        padding: 15px;
+                        border-radius: 12px;
+                        margin: 20px 0;
+                        border: 1px solid #7f41ef;
+                    ">
+                        <code style="color: #c48cfc;">
+                            @ваш_бот
+                        </code>
+                    </div>
+                    <p style="color: #b0b0c0; font-size: 14px;">
+                        Если вы видите это сообщение в Telegram,<br>
+                        обновите страницу или перезапустите приложение.
+                    </p>
+                </div>
+            </div>
+        `;
+        throw new Error('Приложение доступно только в Telegram');
+    }
+})();
 // ==================== ОСНОВНАЯ ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
     console.log(`${APP_CONFIG.APP_NAME} v${APP_CONFIG.VERSION}`);
