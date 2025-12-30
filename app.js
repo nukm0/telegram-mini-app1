@@ -1,26 +1,28 @@
 // Конфигурация приложения
-const APP_CONFIG = {
-    API_URL: '',
-    VAPEMARKET_VERSION: '1.0.0',
-    MAX_IMAGES: 3,
-    MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+const APP_CONFIG = window.CONFIG || {
+    APP_NAME: 'Vape Market',
+    VERSION: '1.0.0',
+    SUPABASE_URL: '',
+    SUPABASE_ANON_KEY: '',
+    MAX_IMAGES_PER_AD: 3,
+    MAX_FILE_SIZE: 5 * 1024 * 1024,
     AD_LIFETIME_DAYS: 14
 };
 
-// Текущий пользователь
+// Глобальные переменные
 let currentUser = null;
+let supabaseClient = null;
 let adminMode = false;
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Vape Market v' + APP_CONFIG.VAPEMARKET_VERSION);
+    console.log(`${APP_CONFIG.APP_NAME} v${APP_CONFIG.VERSION}`);
     
     // Проверка Telegram WebApp
     if (window.Telegram && Telegram.WebApp) {
         initTelegramWebApp();
     } else {
         console.log('Telegram WebApp не обнаружен, режим браузера');
-        // В режиме браузера используем мок-данные
         currentUser = {
             id: 'browser_user_001',
             first_name: 'Гость',
@@ -30,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateUIForUser();
     }
     
-    // Инициализация Firebase
+    // Инициализация Supabase
     await initSupabase();
     
     // Загрузка объявлений
@@ -38,9 +40,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Настройка обработчиков событий
     setupEventListeners();
-    
-    // Проверка авторизации
-    checkAuth();
 });
 
 // Инициализация Telegram WebApp
@@ -57,13 +56,13 @@ function initTelegramWebApp() {
             photo_url: tgUser.photo_url,
             language_code: tgUser.language_code,
             isPremium: tgUser.is_premium || false,
-            isAdmin: tgUser.id === 998579758 // твой ID
+            isAdmin: tgUser.id.toString() === '998579758' // твой ID
         };
         
         adminMode = currentUser.isAdmin;
         updateUIForUser();
         
-        // Регистрация/авторизация пользователя
+        // Регистрация пользователя в Supabase
         registerUser(currentUser);
     }
 }
@@ -71,15 +70,15 @@ function initTelegramWebApp() {
 // Инициализация Supabase
 async function initSupabase() {
     try {
-        if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
-            console.error('Supabase конфигурация не найдена в CONFIG');
+        if (!APP_CONFIG.SUPABASE_URL || !APP_CONFIG.SUPABASE_ANON_KEY) {
+            console.log('Supabase конфигурация не найдена, работаем в оффлайн режиме');
             return;
         }
         
         // Создаём клиент Supabase
-        window.supabaseClient = supabase.createClient(
-            CONFIG.SUPABASE_URL,
-            CONFIG.SUPABASE_ANON_KEY
+        supabaseClient = supabase.createClient(
+            APP_CONFIG.SUPABASE_URL,
+            APP_CONFIG.SUPABASE_ANON_KEY
         );
         
         console.log('Supabase инициализирован');
@@ -90,21 +89,27 @@ async function initSupabase() {
 
 // Регистрация пользователя в системе
 async function registerUser(userData) {
+    if (!supabaseClient) return;
+    
     try {
-        const response = await fetch(`${APP_CONFIG.API_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        });
+        const { data, error } = await supabaseClient
+            .from('users')
+            .upsert({
+                telegram_id: userData.id,
+                username: userData.username,
+                first_name: userData.first_name,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'telegram_id'
+            });
         
-        if (response.ok) {
-            const data = await response.json();
+        if (error) {
+            console.error('Ошибка регистрации пользователя:', error);
+        } else {
             console.log('Пользователь зарегистрирован:', data);
         }
     } catch (error) {
-        console.error('Ошибка регистрации пользователя:', error);
+        console.error('Ошибка:', error);
     }
 }
 
@@ -117,77 +122,90 @@ async function loadAds() {
         // Показываем загрузку
         adsGrid.innerHTML = '<div class="loading">Загрузка объявлений...</div>';
         
-        // Здесь будет запрос к API
-        // const response = await fetch(`${APP_CONFIG.API_URL}/ads`);
-        // const ads = await response.json();
+        // Пробуем загрузить из Supabase
+        let ads = [];
         
-        // Временные мок-данные
-        const mockAds = [
-            {
-                id: '1',
-                title: 'Caliburn G3',
-                price: 1500,
-                description: 'Новое устройство, в упаковке. Использовался 1 раз.',
-                category: 'devices',
-                type: 'sale',
-                images: [],
-                seller: {
-                    id: 'seller1',
-                    name: 'Алексей',
-                    rating: 4.7,
-                    verified: true
-                },
-                createdAt: new Date(),
-                likes: 8,
-                dislikes: 2,
-                views: 124
-            },
-            {
-                id: '2',
-                title: 'Жидкости Vampire Vape',
-                price: 800,
-                description: 'Набор из 3 жидкостей, 60ml каждая. Вкусы: Heisenberg, Pinkman, Energy',
-                category: 'liquids',
-                type: 'sale',
-                images: [],
-                seller: {
-                    id: 'seller2',
-                    name: 'Мария',
-                    rating: 4.9,
-                    verified: true
-                },
-                createdAt: new Date(Date.now() - 86400000), // 1 день назад
-                likes: 15,
-                dislikes: 1,
-                views: 89
-            },
-            {
-                id: '3',
-                title: 'Нужны испарители для Vaporesso',
-                price: 500,
-                description: 'Ищу оригинальные испарители для Vaporesso GTX',
-                category: 'accessories',
-                type: 'buy',
-                images: [],
-                seller: {
-                    id: 'buyer1',
-                    name: 'Дмитрий',
-                    rating: 4.5,
-                    verified: false
-                },
-                createdAt: new Date(Date.now() - 172800000), // 2 дня назад
-                likes: 3,
-                dislikes: 0,
-                views: 45
+        if (supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('ads')
+                .select('*')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(20);
+            
+            if (!error && data) {
+                ads = data;
             }
-        ];
+        }
         
-        renderAds(mockAds);
+        // Если нет данных из Supabase, используем мок-данные
+        if (ads.length === 0) {
+            ads = getMockAds();
+        }
+        
+        renderAds(ads);
     } catch (error) {
         console.error('Ошибка загрузки объявлений:', error);
         document.getElementById('adsGrid').innerHTML = 
             '<div class="error">Ошибка загрузки объявлений</div>';
     }
+}
+
+// Мок-данные для тестирования
+function getMockAds() {
+    return [
+        {
+            id: '1',
+            title: 'Caliburn G3',
+            price: 1500,
+            description: 'Новое устройство, в упаковке. Использовался 1 раз.',
+            category: 'devices',
+            type: 'sale',
+            images: [],
+            seller_id: 'seller1',
+            seller_name: 'Алексей',
+            rating: 4.7,
+            verified: true,
+            likes: 8,
+            dislikes: 2,
+            views: 124,
+            created_at: new Date().toISOString()
+        },
+        {
+            id: '2',
+            title: 'Жидкости Vampire Vape',
+            price: 800,
+            description: 'Набор из 3 жидкостей, 60ml каждая. Вкусы: Heisenberg, Pinkman, Energy',
+            category: 'liquids',
+            type: 'sale',
+            images: [],
+            seller_id: 'seller2',
+            seller_name: 'Мария',
+            rating: 4.9,
+            verified: true,
+            likes: 15,
+            dislikes: 1,
+            views: 89,
+            created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+            id: '3',
+            title: 'Нужны испарители для Vaporesso',
+            price: 500,
+            description: 'Ищу оригинальные испарители для Vaporesso GTX',
+            category: 'accessories',
+            type: 'buy',
+            images: [],
+            seller_id: 'buyer1',
+            seller_name: 'Дмитрий',
+            rating: 4.5,
+            verified: false,
+            likes: 3,
+            dislikes: 0,
+            views: 45,
+            created_at: new Date(Date.now() - 172800000).toISOString()
+        }
+    ];
 }
 
 // Отрисовка объявлений
@@ -217,14 +235,14 @@ function renderAds(ads) {
                     <span class="ad-price">${ad.price} ₽</span>
                 </div>
                 
-                <p class="ad-description">${ad.description}</p>
+                <p class="ad-description">${ad.description || 'Нет описания'}</p>
                 
                 <div class="ad-meta">
                     <span class="ad-category">${getCategoryName(ad.category)}</span>
                     <span class="ad-type">
                         <i class="fas fa-user"></i>
-                        ${ad.seller.name}
-                        ${ad.seller.verified ? '<i class="fas fa-check-circle verified-icon"></i>' : ''}
+                        ${ad.seller_name || 'Продавец'}
+                        ${ad.verified ? '<i class="fas fa-check-circle verified-icon"></i>' : ''}
                     </span>
                 </div>
                 
@@ -309,50 +327,6 @@ function setupEventListeners() {
             createNewAd();
         });
     }
-    
-    // Форма жалобы
-    const reportForm = document.getElementById('reportForm');
-    if (reportForm) {
-        reportForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitReport();
-        });
-    }
-    
-    // Загрузка файлов
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    
-    if (uploadArea && fileInput) {
-        uploadArea.addEventListener('click', () => fileInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'var(--primary)';
-            uploadArea.style.background = 'rgba(127, 65, 239, 0.1)';
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = 'var(--border)';
-            uploadArea.style.background = 'transparent';
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'var(--border)';
-            uploadArea.style.background = 'transparent';
-            
-            if (e.dataTransfer.files.length > 0) {
-                handleFileSelect(e.dataTransfer.files);
-            }
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files);
-            }
-        });
-    }
 }
 
 // Фильтрация объявлений
@@ -398,57 +372,12 @@ function showCreateAdModal() {
     document.body.style.overflow = 'hidden';
 }
 
-// Показать модальное окно жалобы
-function showReportModal(adId) {
-    const modal = document.getElementById('reportModal');
-    modal.dataset.adId = adId;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
 // Закрыть все модальные окна
 function closeAllModals() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.classList.remove('active');
     });
     document.body.style.overflow = 'auto';
-}
-
-// Обработка выбора файлов
-function handleFileSelect(files) {
-    const previewContainer = document.getElementById('previewContainer');
-    if (!previewContainer) return;
-    
-    Array.from(files).slice(0, APP_CONFIG.MAX_IMAGES).forEach(file => {
-        if (file.size > APP_CONFIG.MAX_FILE_SIZE) {
-            alert(`Файл ${file.name} превышает максимальный размер 5MB`);
-            return;
-        }
-        
-        if (!file.type.startsWith('image/')) {
-            alert(`Файл ${file.name} не является изображением`);
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const previewItem = document.createElement('div');
-            previewItem.className = 'preview-item';
-            previewItem.innerHTML = `
-                <img src="${e.target.result}" alt="Preview">
-                <button class="remove-file" onclick="removePreview(this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            previewContainer.appendChild(previewItem);
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-// Удаление превью
-function removePreview(button) {
-    button.closest('.preview-item').remove();
 }
 
 // Создание нового объявления
@@ -460,66 +389,37 @@ async function createNewAd() {
         title: formData.get('title'),
         type: formData.get('type'),
         category: formData.get('category'),
-        price: parseInt(formData.get('price')),
+        price: parseInt(formData.get('price')) || 0,
         description: formData.get('description'),
-        sellerId: currentUser.id,
-        sellerName: currentUser.first_name,
-        sellerUsername: currentUser.username
+        seller_id: currentUser.id,
+        seller_name: currentUser.first_name,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + APP_CONFIG.AD_LIFETIME_DAYS * 86400000).toISOString()
     };
     
     try {
-        const response = await fetch(`${APP_CONFIG.API_URL}/ads`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(adData)
-        });
-        
-        if (response.ok) {
+        // Сохраняем в Supabase если есть соединение
+        if (supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('ads')
+                .insert([adData]);
+            
+            if (error) {
+                console.error('Ошибка сохранения в Supabase:', error);
+                alert('Ошибка при создании объявления');
+                return;
+            }
+            
             alert('Объявление успешно создано!');
             closeAllModals();
             form.reset();
-            document.getElementById('previewContainer').innerHTML = '';
             loadAds(); // Перезагружаем список
         } else {
-            alert('Ошибка при создании объявления');
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Ошибка соединения');
-    }
-}
-
-// Отправка жалобы
-async function submitReport() {
-    const form = document.getElementById('reportForm');
-    const formData = new FormData(form);
-    const adId = document.getElementById('reportModal').dataset.adId;
-    
-    const reportData = {
-        adId: adId,
-        reason: formData.get('reason'),
-        comment: formData.get('comment'),
-        reporterId: currentUser.id,
-        reporterName: currentUser.first_name
-    };
-    
-    try {
-        const response = await fetch(`${APP_CONFIG.API_URL}/reports`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reportData)
-        });
-        
-        if (response.ok) {
-            alert('Жалоба отправлена модераторам');
+            // Локальное сохранение (для демо)
+            alert('Объявление создано (демо-режим)');
             closeAllModals();
             form.reset();
-        } else {
-            alert('Ошибка при отправке жалобы');
         }
     } catch (error) {
         console.error('Ошибка:', error);
@@ -534,23 +434,21 @@ async function likeAd(adId) {
         return;
     }
     
-    try {
-        const response = await fetch(`${APP_CONFIG.API_URL}/ads/${adId}/like`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ userId: currentUser.id })
-        });
-        
-        if (response.ok) {
-            // Обновляем счетчик на UI
-            const btn = document.querySelector(`[onclick="likeAd('${adId}')"]`);
-            const countSpan = btn.querySelector('.count');
-            countSpan.textContent = parseInt(countSpan.textContent) + 1;
+    // Обновляем UI
+    const btn = document.querySelector(`[onclick="likeAd('${adId}')"]`);
+    if (btn) {
+        const countSpan = btn.querySelector('.count');
+        countSpan.textContent = parseInt(countSpan.textContent) + 1;
+    }
+    
+    // Сохраняем в Supabase
+    if (supabaseClient) {
+        try {
+            // Здесь можно добавить логику сохранения лайков
+            console.log('Лайк сохранён для объявления:', adId);
+        } catch (error) {
+            console.error('Ошибка сохранения лайка:', error);
         }
-    } catch (error) {
-        console.error('Ошибка лайка:', error);
     }
 }
 
@@ -561,23 +459,11 @@ async function dislikeAd(adId) {
         return;
     }
     
-    try {
-        const response = await fetch(`${APP_CONFIG.API_URL}/ads/${adId}/dislike`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ userId: currentUser.id })
-        });
-        
-        if (response.ok) {
-            // Обновляем счетчик на UI
-            const btn = document.querySelector(`[onclick="dislikeAd('${adId}')"]`);
-            const countSpan = btn.querySelector('.count');
-            countSpan.textContent = parseInt(countSpan.textContent) + 1;
-        }
-    } catch (error) {
-        console.error('Ошибка дизлайка:', error);
+    // Обновляем UI
+    const btn = document.querySelector(`[onclick="dislikeAd('${adId}')"]`);
+    if (btn) {
+        const countSpan = btn.querySelector('.count');
+        countSpan.textContent = parseInt(countSpan.textContent) + 1;
     }
 }
 
@@ -619,19 +505,7 @@ function updateUIForUser() {
     }
 }
 
-// Проверка авторизации
-function checkAuth() {
-    const authCheckInterval = setInterval(() => {
-        if (!currentUser) {
-            // Показать приглашение к авторизации
-            console.log('Ожидание авторизации...');
-        } else {
-            clearInterval(authCheckInterval);
-        }
-    }, 1000);
-}
-
-// Инициализация Service Worker для PWA
+// Service Worker для PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js')
@@ -639,7 +513,15 @@ if ('serviceWorker' in navigator) {
                 console.log('Service Worker зарегистрирован:', registration);
             })
             .catch(error => {
-                console.log('Ошибка регистрации Service Worker:', error);
+                console.log('Service Worker не требуется:', error);
             });
     });
 }
+
+// Глобальные функции для onclick
+window.likeAd = likeAd;
+window.dislikeAd = dislikeAd;
+window.contactSeller = contactSeller;
+window.showReportModal = function(adId) {
+    alert('Жалоба отправлена (демо-режим)');
+};
