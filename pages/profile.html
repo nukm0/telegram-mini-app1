@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет - Vape Market</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-smoking"></i>
+            <span>Vape Market</span>
+        </div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="profile.html" class="nav-link active">
+                <i class="fas fa-user"></i>
+                <span>Кабинет</span>
+            </a>
+            <a href="faq.html" class="nav-link">
+                <i class="fas fa-question-circle"></i>
+                <span>FAQ</span>
+            </a>
+            <a href="admin.html" class="nav-link admin-only">
+                <i class="fas fa-shield-alt"></i>
+                <span>Админ</span>
+            </a>
+        </div>
+        <div class="nav-user" id="userAvatar">
+            <div class="avatar-placeholder">Г</div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Заголовок профиля -->
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">
+                Г
+            </div>
+            <div class="profile-info">
+                <h1 id="profileName">Гость</h1>
+                <p class="profile-username" id="profileUsername">
+                    <i class="fas fa-at"></i> @guest_user
+                </p>
+                <div class="profile-rating">
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <span class="rating-value">4.7</span>
+                    <span class="rating-count">(24 оценки)</span>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-primary" onclick="editProfile()">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                    <button class="btn btn-secondary" onclick="showSettings()">
+                        <i class="fas fa-cog"></i> Настройки
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика профиля -->
+        <div class="profile-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="adsCount">0</div>
+                <div class="stat-label">Объявления</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="likesCount">0</div>
+                <div class="stat-label">Лайки</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="ratingValue">0.0</div>
+                <div class="stat-label">Рейтинг</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dealsCount">0</div>
+                <div class="stat-label">Сделки</div>
+            </div>
+        </div>
+
+        <!-- Меню кабинета -->
+        <div class="profile-menu">
+            <h2><i class="fas fa-bars"></i> Меню кабинета</h2>
+            <div class="menu-grid">
+                <button class="menu-item" onclick="showMyAds()">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Мои объявления</span>
+                </button>
+                <button class="menu-item" onclick="showHistory()">
+                    <i class="fas fa-history"></i>
+                    <span>История сделок</span>
+                </button>
+                <button class="menu-item" onclick="showFavorites()">
+                    <i class="fas fa-heart"></i>
+                    <span>Избранное</span>
+                </button>
+                <button class="menu-item" onclick="showMessages()">
+                    <i class="fas fa-comments"></i>
+                    <span>Сообщения</span>
+                </button>
+                <button class="menu-item" onclick="showNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span>Уведомления</span>
+                </button>
+                <button class="menu-item" onclick="showSecurity()">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Безопасность</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Мои объявления -->
+        <div id="myAdsSection">
+            <h2><i class="fas fa-list-alt"></i> Мои объявления</h2>
+            <div class="ads-grid" id="myAdsGrid">
+                <!-- Мои объявления загружаются через JS -->
+            </div>
+        </div>
+
+        <!-- История просмотров -->
+        <div id="historySection" style="display: none;">
+            <h2><i class="fas fa-history"></i> История просмотров</h2>
+            <div class="history-list" id="historyList">
+                <!-- История загружается через JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+    <script src="profile.js"></script>
+</body>
+</html>
