@@ -505,19 +505,6 @@ function updateUIForUser() {
     }
 }
 
-// Service Worker для PWA
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-                console.log('Service Worker зарегистрирован:', registration);
-            })
-            .catch(error => {
-                console.log('Service Worker не требуется:', error);
-            });
-    });
-}
-
 // Глобальные функции для onclick
 window.likeAd = likeAd;
 window.dislikeAd = dislikeAd;
