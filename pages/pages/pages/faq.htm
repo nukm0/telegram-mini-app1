@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - Vape Market</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-smoking"></i>
+            <span>Vape Market</span>
+        </div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="profile.html" class="nav-link">
+                <i class="fas fa-user"></i>
+                <span>Кабинет</span>
+            </a>
+            <a href="faq.html" class="nav-link active">
+                <i class="fas fa-question-circle"></i>
+                <span>FAQ</span>
+            </a>
+            <a href="admin.html" class="nav-link admin-only">
+                <i class="fas fa-shield-alt"></i>
+                <span>Админ</span>
+            </a>
+        </div>
+        <div class="nav-user" id="userAvatar">
+            <div class="avatar-placeholder">Г</div>
+        </div>
+    </nav>
+
+    <div class="container faq-container">
+        <h1 class="faq-title">
+            <i class="fas fa-question-circle"></i> Часто задаваемые вопросы
+        </h1>
+
+        <!-- Категории FAQ -->
+        <div class="faq-categories">
+            <button class="faq-category active" data-category="general">
+                <i class="fas fa-info-circle"></i> Общее
+            </button>
+            <button class="faq-category" data-category="ads">
+                <i class="fas fa-tag"></i> Объявления
+            </button>
+            <button class="faq-category" data-category="safety">
+                <i class="fas fa-shield-alt"></i> Безопасность
+            </button>
+            <button class="faq-category" data-category="support">
+                <i class="fas fa-headset"></i> Поддержка
+            </button>
+        </div>
+
+        <!-- Секция обратной связи -->
+        <div class="support-section">
+            <h2><i class="fas fa-headset"></i> Связь с поддержкой</h2>
+            
+            <div class="support-options">
+                <div class="support-card" onclick="showSupportForm('bug')">
+                    <div class="support-icon error">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <h3>Баг/Ошибка</h3>
+                    <p>Сообщить о технической проблеме</p>
+                </div>
+                
+                <div class="support-card" onclick="showSupportForm('cooperation')">
+                    <div class="support-icon cooperation">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>Сотрудничество</h3>
+                    <p>Запрос на партнерство</p>
+                </div>
+                
+                <div class="support-card" onclick="showSupportForm('other')">
+                    <div class="support-icon other">
+                        <i class="fas fa-question"></i>
+                    </div>
+                    <h3>Другой вопрос</h3>
+                    <p>Общий вопрос к поддержке</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Важная информация -->
+        <div class="important-info">
+            <h2><i class="fas fa-exclamation-circle"></i> Важная информация</h2>
+            
+            <div class="info-card warning">
+                <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="info-content">
+                    <h3>Срок жизни объявлений</h3>
+                    <p>Объявления автоматически удаляются через <strong>14 дней</strong> после публикации. 
+                    Для продления нужно обновить объявление в личном кабинете.</p>
+                </div>
+            </div>
+            
+            <div class="info-card success">
+                <div class="info-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="info-content">
+                    <h3>Галочка проверенного продавца</h3>
+                    <p>Статус проверенного продавца получают пользователи с большим количеством 
+                    успешных сделок и высоким рейтингом. За дополнительной информацией 
+                    обращайтесь через кнопку "Сотрудничество".</p>
+                </div>
+            </div>
+            
+            <div class="info-card info">
+                <div class="info-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="info-content">
+                    <h3>Безопасность сделок</h3>
+                    <p>Рекомендуем проводить сделки только с проверенными продавцами. 
+                    Никогда не переводите деньги заранее без гарантий.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Частые вопросы -->
+        <div class="faq-list" id="faqList">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как создать объявление?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Нажмите кнопку "Разместить" на главной странице, заполните форму и нажмите "Опубликовать". 
+                    Для продажи устройств обязательно добавьте фотографии.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как связаться с продавцом?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Нажмите кнопку "Написать" под объявлением. Откроется Telegram с готовым сообщением 
+                    для продавца.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как работает рейтинговая система?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Рейтинг рассчитывается на основе лайков и дизлайков от других пользователей. 
+                    5-звездочная система обновляется после каждой сделки.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Что делать, если нашел мошенника?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Немедленно нажмите кнопку "Пожаловаться" под объявлением. 
+                    Администраторы рассмотрят жалобу в течение 24 часов.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Можно ли продавать жидкости с никотином?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Да, но только совершеннолетним. При продаже необходимо указывать крепость никотина 
+                    и соблюдать законодательство вашего региона.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Форма обратной связи (скрыта по умолчанию) -->
+        <div class="support-form" id="supportForm" style="display: none;">
+            <h2 id="formTitle">Форма обратной связи</h2>
+            <form id="feedbackForm">
+                <div class="form-group">
+                    <label>Тема обращения</label>
+                    <input type="text" id="supportSubject" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ваш Telegram</label>
+                    <input type="text" id="supportTelegram" 
+                           value="@username" 
+                           onfocus="if(this.value==='@username')this.value=''" 
+                           required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Подробное описание</label>
+                    <textarea id="supportMessage" rows="6" 
+                              placeholder="Опишите вашу проблему или вопрос максимально подробно..." 
+                              required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Скриншот (опционально)</label>
+                    <input type="file" id="supportScreenshot" accept="image/*">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="hideSupportForm()">
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i> Отправить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Логика FAQ
+        document.addEventListener('DOMContentLoaded', function() {
+            // Раскрытие/скрытие вопросов
+            document.querySelectorAll('.faq-question').forEach(question => {
+                question.addEventListener('click', function() {
+                    const answer = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+                    icon.className = answer.style.display === 'block' ? 
+                        'fas fa-chevron-up' : 'fas fa-chevron-down';
+                });
+            });
+            
+            // Категории FAQ
+            document.querySelectorAll('.faq-category').forEach(category => {
+                category.addEventListener('click', function() {
+                    document.querySelectorAll('.faq-category').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Фильтрация вопросов по категории
+                    const cat = this.dataset.category;
+                    // Здесь можно добавить фильтрацию
+                });
+            });
+        });
+        
+        // Показать форму обратной связи
+        function showSupportForm(type) {
+            const form = document.getElementById('supportForm');
+            const title = document.getElementById('formTitle');
+            const subject = document.getElementById('supportSubject');
+            
+            const forms = {
+                'bug': 'Сообщение об ошибке',
+                'cooperation': 'Запрос на сотрудничество',
+                'other': 'Другой вопрос'
+            };
+            
+            title.textContent = forms[type] || 'Обратная связь';
+            subject.value = forms[type] || '';
+            
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Скрыть форму обратной связи
+        function hideSupportForm() {
+            document.getElementById('supportForm').style.display = 'none';
+            document.getElementById('feedbackForm').reset();
+        }
+        
+        // Отправка формы обратной связи
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                type: document.getElementById('supportSubject').value,
+                telegram: document.getElementById('supportTelegram').value,
+                message: document.getElementById('supportMessage').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Здесь будет отправка на сервер
+            console.log('Форма отправлена:', formData);
+            
+            alert('Сообщение отправлено! Мы ответим вам в течение 24 часов.');
+            hideSupportForm();
+        });
+    </script>
+</body>
+</html>
