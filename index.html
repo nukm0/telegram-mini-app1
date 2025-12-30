@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vape Market - Главная</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-smoking"></i>
+            <span>Vape Market</span>
+        </div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-link active">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="profile.html" class="nav-link">
+                <i class="fas fa-user"></i>
+                <span>Кабинет</span>
+            </a>
+            <a href="faq.html" class="nav-link">
+                <i class="fas fa-question-circle"></i>
+                <span>FAQ</span>
+            </a>
+            <a href="admin.html" class="nav-link admin-only">
+                <i class="fas fa-shield-alt"></i>
+                <span>Админ</span>
+            </a>
+        </div>
+        <div class="nav-user" id="userAvatar">
+            <div class="avatar-placeholder">Г</div>
+        </div>
+    </nav>
+
+    <!-- Рекламный баннер (только для админа) -->
+    <div class="banner admin-only" id="adminBanner" style="display: none;">
+        <i class="fas fa-star"></i>
+        <span>Рекламный баннер. Нажмите чтобы изменить</span>
+        <button class="btn-edit-banner">
+            <i class="fas fa-edit"></i>
+        </button>
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div class="search-section">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Поиск по объявлениям...">
+            <button class="btn-filter">
+                <i class="fas fa-sliders-h"></i>
+            </button>
+        </div>
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Все</button>
+            <button class="filter-btn" data-filter="sale">Продажа</button>
+            <button class="filter-btn" data-filter="buy">Покупка</button>
+            <button class="filter-btn" data-filter="liquids">Жидкости</button>
+            <button class="filter-btn" data-filter="devices">Устройства</button>
+        </div>
+    </div>
+
+    <!-- Лента объявлений -->
+    <div class="container">
+        <h2 class="section-title">Свежие объявления</h2>
+        <div class="ads-grid" id="adsGrid">
+            <!-- Объявления загружаются через JS -->
+        </div>
+    </div>
+
+    <!-- Кнопка создания объявления -->
+    <button class="btn-create-ad" id="createAdBtn">
+        <i class="fas fa-plus"></i>
+        <span>Разместить</span>
+    </button>
+
+    <!-- Модальное окно создания объявления -->
+    <div class="modal" id="createAdModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Новое объявление</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="adForm">
+                    <div class="form-group">
+                        <label>Тип сделки</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="type" value="sell" checked> Продаю</label>
+                            <label><input type="radio" name="type" value="buy"> Покупаю</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Категория</label>
+                        <select name="category" required>
+                            <option value="">Выберите категорию</option>
+                            <option value="liquids">Жидкости</option>
+                            <option value="devices">Устройства</option>
+                            <option value="accessories">Аксессуары</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Название товара</label>
+                        <input type="text" name="title" placeholder="Например: Caliburn G3" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Цена (₽)</label>
+                        <input type="number" name="price" placeholder="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Фотографии (до 3 штук)</label>
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Перетащите фото или нажмите для выбора</p>
+                            <small>JPG, PNG, до 5MB</small>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                        <div class="preview-container" id="previewContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea name="description" rows="4" placeholder="Опишите состояние, характеристики..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary modal-close">Отмена</button>
+                        <button type="submit" class="btn-primary">Опубликовать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно жалобы -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-flag"></i> Пожаловаться</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm">
+                    <div class="form-group">
+                        <label>Причина жалобы</label>
+                        <select name="reason" required>
+                            <option value="">Выберите причину</option>
+                            <option value="spam">Спам/Реклама</option>
+                            <option value="fake">Недостоверная информация</option>
+                            <option value="prohibited">Запрещённый товар</option>
+                            <option value="scam">Мошенничество</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Комментарий</label>
+                        <textarea name="comment" rows="3" placeholder="Опишите проблему подробнее..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary modal-close">Отмена</button>
+                        <button type="submit" class="btn-danger">Отправить жалобу</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
