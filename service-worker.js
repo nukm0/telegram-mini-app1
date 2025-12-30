@@ -1,10 +1,5 @@
-// Простой Service Worker для кэширования
-const CACHE_NAME = 'vape-market-v1';
-
-self.addEventListener('install', event => {
-    console.log('Service Worker установлен');
-});
-
+// Простой Service Worker
 self.addEventListener('fetch', event => {
+    // Просто пропускаем все запросы
     event.respondWith(fetch(event.request));
 });
