@@ -1,11 +1,11 @@
 const CONFIG = {
     // =================== SUPABASE ===================
-    SUPABASE_URL: 'https://etvzgxcsfsirkwbdbyr.supabase.co',
-    SUPABASE_ANON_KEY: 'sb_publishable_Zt3YoNECFFaE8Bj1AmuPQ_UTizVNzk',
+    SUPABASE_URL: '',
+    SUPABASE_ANON_KEY: '',
     
     // =================== TELEGRAM ===================
     TELEGRAM_BOT_TOKEN: '8532550864:AAFrwxWfJF836SVnDGVa73xT5BlrfgapWVw',
-    TELEGRAM_WEBAPP_URL: 'https://telegram-market-vape.vercel.app',
+    TELEGRAM_WEBAPP_URL: 'https://vape-tg-working-git-main-nukm0.vercel.app',
     ADMIN_IDS: ['998579758'],
     
     // =================== ВЛАДЕЛЕЦ ===================
