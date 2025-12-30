@@ -1,7 +1,7 @@
 const CONFIG = {
     // =================== SUPABASE ===================
     window.CONFIG = {
-    SUPABASE_URL: 'https://etvzgxcsfsirixwbdbyr.supabase.co', // ОБРАТИТЕ ВНИМАНИЕ: irixw!
+    SUPABASE_URL: 'https://etvzgxcsfsirixwbdbyr.supabase.co',
     SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0dnpneGNzZnNpcml4d2JkYnlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMzczNzAsImV4cCI6MjA4MjYxMzM3MH0.SGf-kI_zFZoONYtsM31-zWsxmuXqgnIyc4gh1O3WyKw'
 };
     
