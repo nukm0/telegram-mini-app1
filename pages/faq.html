@@ -6,6 +6,84 @@
     <title>FAQ - Vape Market</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .faq-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .faq-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 32px;
+            color: var(--text-primary);
+        }
+        
+        .faq-list {
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        
+        .faq-item {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            background: var(--bg-hover);
+        }
+        
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            border-top: 1px solid transparent;
+        }
+        
+        .faq-answer.active {
+            padding: 20px;
+            max-height: 500px;
+            border-top-color: var(--border);
+        }
+        
+        .important-info {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            margin-top: 40px;
+        }
+        
+        .important-info h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .important-info p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
     <!-- Навигация -->
@@ -37,8 +115,10 @@
         </div>
     </nav>
 
-    <div class="container">
-        <h1><i class="fas fa-question-circle"></i> Часто задаваемые вопросы</h1>
+    <div class="faq-container">
+        <h1 class="faq-title">
+            <i class="fas fa-question-circle"></i> Часто задаваемые вопросы
+        </h1>
         
         <!-- FAQ список -->
         <div class="faq-list">
@@ -48,17 +128,47 @@
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="faq-answer">
-                    <p>Нажмите кнопку "Разместить" на главной странице, заполните форму и опубликуйте.</p>
+                    <p>Нажмите кнопку "Разместить" на главной странице, заполните форму с названием товара, ценой, категорией и описанием, затем нажмите "Опубликовать". Для продажи устройств рекомендуется добавлять фотографии.</p>
                 </div>
             </div>
             
             <div class="faq-item">
                 <div class="faq-question">
-                    <span>Как работает рейтинг?</span>
+                    <span>Как работает рейтинговая система?</span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="faq-answer">
-                    <p>Рейтинг формируется на основе оценок других пользователей после успешных сделок.</p>
+                    <p>Рейтинг формируется на основе оценок других пользователей после успешных сделок. Каждая успешная сделка позволяет участникам оценить друг друга по 5-звёздочной системе. Средний рейтинг отображается в профиле.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как связаться с продавцом?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Нажмите кнопку "Написать" под объявлением. Откроется Telegram с готовым сообщением для продавца. Вся коммуникация происходит напрямую между пользователями в Telegram.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Что делать, если нашел мошенника?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Немедленно нажмите кнопку "Пожаловаться" под объявлением. Администраторы рассмотрят жалобу в течение 24 часов. В случае подтверждения мошенничества пользователь будет заблокирован.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как получить статус "Проверенный продавец"?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Статус выдаётся автоматически после 10 успешных сделок и поддержания рейтинга выше 4.5 звёзд. Также можно запросить верификацию через раздел "Сотрудничество" в поддержке.</p>
                 </div>
             </div>
         </div>
@@ -66,7 +176,8 @@
         <!-- Информация -->
         <div class="important-info">
             <h3><i class="fas fa-info-circle"></i> Важная информация</h3>
-            <p>Объявления автоматически удаляются через 14 дней. Для продления обновите объявление.</p>
+            <p><strong>Срок жизни объявлений:</strong> Все объявления автоматически удаляются через 14 дней после публикации. Для продления необходимо обновить объявление в личном кабинете.</p>
+            <p><strong>Безопасность:</strong> Рекомендуем проводить сделки только с проверенными продавцами и никогда не переводить деньги заранее без гарантий.</p>
         </div>
     </div>
 
@@ -80,7 +191,22 @@
         document.querySelectorAll('.faq-question').forEach(question => {
             question.addEventListener('click', function() {
                 const answer = this.nextElementSibling;
-                answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+                const icon = this.querySelector('i');
+                
+                // Закрываем все остальные
+                document.querySelectorAll('.faq-answer').forEach(item => {
+                    if (item !== answer) {
+                        item.classList.remove('active');
+                    }
+                });
+                
+                // Переключаем текущий
+                answer.classList.toggle('active');
+                
+                // Меняем иконку
+                icon.className = answer.classList.contains('active') 
+                    ? 'fas fa-chevron-up' 
+                    : 'fas fa-chevron-down';
             });
         });
     </script>
