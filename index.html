@@ -2,123 +2,50 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vape Market - Главная</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Mini App</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚬</text></svg>">
-    <!-- УДАЛИТЬ если есть: <link rel="manifest" href="manifest.json"> -->
+    <!-- Добавлен манифест -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Навигация -->
-    <nav class="navbar">
-        <div class="nav-brand">
-            <i class="fas fa-smoking"></i>
-            <span>Vape Market</span>
-        </div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-link active">
-                <i class="fas fa-home"></i>
-                <span>Главная</span>
-            </a>
-            <a href="pages/profile.html" class="nav-link">
-                <i class="fas fa-user"></i>
-                <span>Кабинет</span>
-            </a>
-            <a href="pages/faq.html" class="nav-link">
-                <i class="fas fa-question-circle"></i>
-                <span>FAQ</span>
-            </a>
-        </div>
-        <div class="nav-user" id="userAvatar">
-            <div class="avatar-placeholder">Г</div>
-        </div>
-    </nav>
-
-    <!-- Поиск и фильтры -->
-    <div class="search-section">
-        <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Поиск по объявлениям...">
-        </div>
-        <div class="filters">
-            <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="sell">Продажа</button>
-            <button class="filter-btn" data-filter="buy">Покупка</button>
-            <button class="filter-btn" data-filter="liquids">Жидкости</button>
-            <button class="filter-btn" data-filter="devices">Устройства</button>
-        </div>
-    </div>
-
-    <!-- Лента объявлений -->
     <div class="container">
-        <h2 class="section-title">Свежие объявления</h2>
-        <div class="ads-grid" id="adsGrid">
-            <div class="loading">Загрузка объявлений...</div>
+        <div id="loading">Загрузка Telegram Mini App...</div>
+        
+        <div id="app" style="display: none;">
+            <h1>Добро пожаловать!</h1>
+            
+            <!-- Форма регистрации -->
+            <div id="registration-form">
+                <div class="form-group">
+                    <input type="text" id="username" placeholder="Имя пользователя" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <button id="register-btn" class="btn-primary">Зарегистрироваться</button>
+            </div>
+            
+            <!-- Информация о пользователе -->
+            <div id="user-info" style="display: none;">
+                <h2>Ваш профиль</h2>
+                <p>ID: <span id="user-id"></span></p>
+                <p>Имя: <span id="user-first-name"></span></p>
+                <p>Фамилия: <span id="user-last-name"></span></p>
+                <p>Имя пользователя: <span id="user-username"></span></p>
+                <p>Email: <span id="user-email"></span></p>
+                <button id="logout-btn" class="btn-secondary">Выйти</button>
+            </div>
+            
+            <!-- Сообщения об ошибках/успехе -->
+            <div id="message" class="message"></div>
         </div>
     </div>
 
-    <!-- Кнопка создания объявления -->
-    <button class="btn-create-ad" id="createAdBtn">
-        <i class="fas fa-plus"></i>
-        <span>Разместить</span>
-    </button>
-
-    <!-- Модальное окно -->
-    <div class="modal" id="createAdModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-plus-circle"></i> Новое объявление</h3>
-                <button class="modal-close">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="adForm">
-                    <div class="form-group">
-                        <label>Тип сделки</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="type" value="sell" checked> Продаю</label>
-                            <label><input type="radio" name="type" value="buy"> Покупаю</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Категория</label>
-                        <select name="category" required>
-                            <option value="">Выберите категорию</option>
-                            <option value="liquids">Жидкости</option>
-                            <option value="devices">Устройства</option>
-                            <option value="accessories">Аксессуары</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Название товара</label>
-                        <input type="text" name="title" placeholder="Например: Caliburn G3" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Цена (₽)</label>
-                        <input type="number" name="price" placeholder="1000" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Описание</label>
-                        <textarea name="description" rows="4" placeholder="Опишите состояние, характеристики..."></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary modal-close">Отмена</button>
-                        <button type="submit" class="btn-primary">Опубликовать</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Подключение скриптов -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="config.js"></script>
+    <!-- Подключаем скрипты -->
+    <script src="confid.js"></script>
     <script src="app.js"></script>
-
-    <script>
-        // УДАЛИТЬ весь код регистрации service worker, если он есть
-        // Не должно быть ничего вроде: 
-        // if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js') }
-    </script>
 </body>
 </html>
