@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
+    <!-- FAVICON -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚬</text></svg>">
 </head>
 <body>
     <!-- Навигация -->
@@ -20,15 +22,15 @@
                 <i class="fas fa-home"></i>
                 <span>Главная</span>
             </a>
-            <a href="profile.html" class="nav-link">
+            <a href="pages/profile.html" class="nav-link">
                 <i class="fas fa-user"></i>
                 <span>Кабинет</span>
             </a>
-            <a href="faq.html" class="nav-link">
+            <a href="pages/faq.html" class="nav-link">
                 <i class="fas fa-question-circle"></i>
                 <span>FAQ</span>
             </a>
-            <a href="admin.html" class="nav-link admin-only">
+            <a href="pages/admin.html" class="nav-link admin-only">
                 <i class="fas fa-shield-alt"></i>
                 <span>Админ</span>
             </a>
@@ -70,6 +72,7 @@
         <h2 class="section-title">Свежие объявления</h2>
         <div class="ads-grid" id="adsGrid">
             <!-- Объявления загружаются через JS -->
+            <div class="loading">Загрузка объявлений...</div>
         </div>
     </div>
 
@@ -113,16 +116,6 @@
                         <input type="number" name="price" placeholder="1000" required>
                     </div>
                     <div class="form-group">
-                        <label>Фотографии (до 3 штук)</label>
-                        <div class="upload-area" id="uploadArea">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Перетащите фото или нажмите для выбора</p>
-                            <small>JPG, PNG, до 5MB</small>
-                        </div>
-                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
-                        <div class="preview-container" id="previewContainer"></div>
-                    </div>
-                    <div class="form-group">
                         <label>Описание</label>
                         <textarea name="description" rows="4" placeholder="Опишите состояние, характеристики..."></textarea>
                     </div>
@@ -135,40 +128,19 @@
         </div>
     </div>
 
-    <!-- Модальное окно жалобы -->
-    <div class="modal" id="reportModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-flag"></i> Пожаловаться</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="reportForm">
-                    <div class="form-group">
-                        <label>Причина жалобы</label>
-                        <select name="reason" required>
-                            <option value="">Выберите причину</option>
-                            <option value="spam">Спам/Реклама</option>
-                            <option value="fake">Недостоверная информация</option>
-                            <option value="prohibited">Запрещённый товар</option>
-                            <option value="scam">Мошенничество</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Комментарий</label>
-                        <textarea name="comment" rows="3" placeholder="Опишите проблему подробнее..." required></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary modal-close">Отмена</button>
-                        <button type="submit" class="btn-danger">Отправить жалобу</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
+    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ -->
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    
+    <!-- Наши скрипты -->
     <script src="config.js"></script>
-    <script src="firebase-config.js"></script>
     <script src="app.js"></script>
+    
+    <script>
+        // Проверка загрузки
+        console.log('Страница загружена');
+        console.log('Supabase:', typeof supabase !== 'undefined' ? '✅ Загружен' : '❌ Нет');
+        console.log('CONFIG:', typeof CONFIG !== 'undefined' ? '✅ Загружен' : '❌ Нет');
+    </script>
 </body>
 </html>
