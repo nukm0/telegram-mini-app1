@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Личный кабинет - Vape Market</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
             <span>Vape Market</span>
         </div>
         <div class="nav-menu">
-            <a href="index.html" class="nav-link">
+            <a href="../index.html" class="nav-link">
                 <i class="fas fa-home"></i>
                 <span>Главная</span>
             </a>
@@ -48,29 +48,15 @@
                 <p class="profile-username" id="profileUsername">
                     <i class="fas fa-at"></i> @guest_user
                 </p>
-                <div class="profile-rating">
-                    <div class="stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <span class="rating-value">4.7</span>
-                    <span class="rating-count">(24 оценки)</span>
-                </div>
                 <div class="profile-actions">
-                    <button class="btn btn-primary" onclick="editProfile()">
+                    <button class="btn btn-primary" onclick="alert('В разработке')">
                         <i class="fas fa-edit"></i> Редактировать
-                    </button>
-                    <button class="btn btn-secondary" onclick="showSettings()">
-                        <i class="fas fa-cog"></i> Настройки
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Статистика профиля -->
+        <!-- Статистика -->
         <div class="profile-stats">
             <div class="stat-card">
                 <div class="stat-value" id="adsCount">0</div>
@@ -90,56 +76,16 @@
             </div>
         </div>
 
-        <!-- Меню кабинета -->
-        <div class="profile-menu">
-            <h2><i class="fas fa-bars"></i> Меню кабинета</h2>
-            <div class="menu-grid">
-                <button class="menu-item" onclick="showMyAds()">
-                    <i class="fas fa-list-alt"></i>
-                    <span>Мои объявления</span>
-                </button>
-                <button class="menu-item" onclick="showHistory()">
-                    <i class="fas fa-history"></i>
-                    <span>История сделок</span>
-                </button>
-                <button class="menu-item" onclick="showFavorites()">
-                    <i class="fas fa-heart"></i>
-                    <span>Избранное</span>
-                </button>
-                <button class="menu-item" onclick="showMessages()">
-                    <i class="fas fa-comments"></i>
-                    <span>Сообщения</span>
-                </button>
-                <button class="menu-item" onclick="showNotifications()">
-                    <i class="fas fa-bell"></i>
-                    <span>Уведомления</span>
-                </button>
-                <button class="menu-item" onclick="showSecurity()">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Безопасность</span>
-                </button>
-            </div>
-        </div>
-
         <!-- Мои объявления -->
-        <div id="myAdsSection">
-            <h2><i class="fas fa-list-alt"></i> Мои объявления</h2>
-            <div class="ads-grid" id="myAdsGrid">
-                <!-- Мои объявления загружаются через JS -->
-            </div>
-        </div>
-
-        <!-- История просмотров -->
-        <div id="historySection" style="display: none;">
-            <h2><i class="fas fa-history"></i> История просмотров</h2>
-            <div class="history-list" id="historyList">
-                <!-- История загружается через JS -->
-            </div>
+        <h2><i class="fas fa-list-alt"></i> Мои объявления</h2>
+        <div class="ads-grid" id="myAdsGrid">
+            <div class="empty">У вас пока нет объявлений</div>
         </div>
     </div>
 
-   <script src="../config.js"></script>
-   <script src="../app.js"></script>
-    <script src="profile.js"></script>
+    <!-- Подключение скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="../config.js"></script>
+    <script src="../app.js"></script>
 </body>
 </html>
