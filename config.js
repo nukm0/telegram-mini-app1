@@ -18,7 +18,7 @@ const CONFIG = {
     // =================== ПРИЛОЖЕНИЕ ===================
     APP_NAME: 'Vape Market',
     VERSION: '1.0.0',
-    API_URL: 'https://telegram-market-vape.vercel.app/api',
+    API_URL: 'https://vape-tg-working.vercel.app/api',
     
     // =================== ОГРАНИЧЕНИЯ ===================
     MAX_IMAGES_PER_AD: 3,
