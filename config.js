@@ -1,7 +1,7 @@
 const CONFIG = {
     // =================== SUPABASE ===================
-    SUPABASE_URL: '',
-    SUPABASE_ANON_KEY: '',
+   SUPABASE_URL: 'https://etvzgxcsfsirkwbdbyr.supabase.co',
+   SUPABASE_ANON_KEY: 'sb_publishable_Zt3YoNECFFaE8Bj1AmuPQ_UTizVNzk'
     
     // =================== TELEGRAM ===================
     TELEGRAM_BOT_TOKEN: '8532550864:AAFrwxWfJF836SVnDGVa73xT5BlrfgapWVw',
