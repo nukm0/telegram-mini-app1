@@ -6,8 +6,8 @@
     <title>Vape Market - Главная</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚬</text></svg>">
+    <!-- УДАЛИТЬ если есть: <link rel="manifest" href="manifest.json"> -->
 </head>
 <body>
     <!-- Навигация -->
@@ -29,37 +29,21 @@
                 <i class="fas fa-question-circle"></i>
                 <span>FAQ</span>
             </a>
-            <a href="pages/admin.html" class="nav-link admin-only">
-                <i class="fas fa-shield-alt"></i>
-                <span>Админ</span>
-            </a>
         </div>
         <div class="nav-user" id="userAvatar">
             <div class="avatar-placeholder">Г</div>
         </div>
     </nav>
 
-    <!-- Рекламный баннер (только для админа) -->
-    <div class="banner admin-only" id="adminBanner" style="display: none;">
-        <i class="fas fa-star"></i>
-        <span>Рекламный баннер. Нажмите чтобы изменить</span>
-        <button class="btn-edit-banner">
-            <i class="fas fa-edit"></i>
-        </button>
-    </div>
-
     <!-- Поиск и фильтры -->
     <div class="search-section">
         <div class="search-bar">
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Поиск по объявлениям...">
-            <button class="btn-filter">
-                <i class="fas fa-sliders-h"></i>
-            </button>
         </div>
         <div class="filters">
             <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="sale">Продажа</button>
+            <button class="filter-btn" data-filter="sell">Продажа</button>
             <button class="filter-btn" data-filter="buy">Покупка</button>
             <button class="filter-btn" data-filter="liquids">Жидкости</button>
             <button class="filter-btn" data-filter="devices">Устройства</button>
@@ -80,7 +64,7 @@
         <span>Разместить</span>
     </button>
 
-    <!-- Модальное окно создания объявления -->
+    <!-- Модальное окно -->
     <div class="modal" id="createAdModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -126,15 +110,15 @@
         </div>
     </div>
 
-    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ -->
+    <!-- Подключение скриптов -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
 
     <script>
-        console.log('Страница загружена');
-        console.log('Supabase:', typeof supabase !== 'undefined' ? '✅ Загружен' : '❌ Нет');
-        console.log('CONFIG:', typeof CONFIG !== 'undefined' ? '✅ Загружен' : '❌ Нет');
+        // УДАЛИТЬ весь код регистрации service worker, если он есть
+        // Не должно быть ничего вроде: 
+        // if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js') }
     </script>
 </body>
 </html>
