@@ -353,7 +353,7 @@ async function createNewAd() {
         likes: 0,
         dislikes: 0,
         views: 0,
-        images: ''
+        images: []  // Пустой МАССИВ вместо строки
     };
     console.log('📝 Данные объявления:', adData);
     if (supabaseClient) {
