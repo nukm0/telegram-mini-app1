@@ -124,4 +124,191 @@ class DatabaseManager {
             const { count, error: countError } = await this.supabase
                 .from('advertisements')
                 .select('*', { count: 'exact', head: true })
-                .
+                .eq('user_id', userId)
+                .eq('status', 'active');
+
+            if (countError) throw countError;
+
+            // Обновляем профиль пользователя
+            await authManager.updateUserStats(userId, {
+                total_ads: count,
+                updated_at: new Date().toISOString()
+            });
+
+        } catch (error) {
+            console.error('Error updating user ad count:', error);
+        }
+    }
+
+    // Голосование за объявление
+    async voteForAd(adId, voteType) {
+        try {
+            const userId = authManager.getUserId();
+            if (!userId) {
+                showNotification('Для голосования нужно авторизоваться', 'error');
+                return false;
+            }
+
+            // Проверяем, голосовал ли уже пользователь
+            const { data: existingVote, error: voteError } = await this.supabase
+                .from('votes')
+                .select('*')
+                .eq('ad_id', adId)
+                .eq('user_id', userId)
+                .single();
+
+            let result;
+
+            if (voteError && voteError.code === 'PGRST116') {
+                // Пользователь еще не голосовал
+                result = await this.createVote(adId, userId, voteType);
+            } else if (existingVote) {
+                // Пользователь уже голосовал
+                result = await this.updateVote(existingVote, voteType);
+            }
+
+            if (result) {
+                showNotification('Спасибо за ваш голос!', 'success');
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.error('Error voting for ad:', error);
+            showNotification('Ошибка при голосовании', 'error');
+            return false;
+        }
+    }
+
+    async createVote(adId, userId, voteType) {
+        // Создаем запись о голосовании
+        const voteData = {
+            ad_id: adId,
+            user_id: userId,
+            vote_type: voteType,
+            created_at: new Date().toISOString()
+        };
+
+        const { error: voteError } = await this.supabase
+            .from('votes')
+            .insert([voteData]);
+
+        if (voteError) throw voteError;
+
+        // Обновляем счетчики в объявлении
+        return await this.updateAdCounters(adId, voteType, 'increment');
+    }
+
+    async updateVote(existingVote, newVoteType) {
+        if (existingVote.vote_type === newVoteType) {
+            // Удаляем голос, если повторно нажали на ту же кнопку
+            const { error: deleteError } = await this.supabase
+                .from('votes')
+                .delete()
+                .eq('id', existingVote.id);
+
+            if (deleteError) throw deleteError;
+
+            return await this.updateAdCounters(existingVote.ad_id, existingVote.vote_type, 'decrement');
+        } else {
+            // Изменяем голос
+            const { error: updateError } = await this.supabase
+                .from('votes')
+                .update({ vote_type: newVoteType, updated_at: new Date().toISOString() })
+                .eq('id', existingVote.id);
+
+            if (updateError) throw updateError;
+
+            // Обновляем счетчики: уменьшаем старый, увеличиваем новый
+            await this.updateAdCounters(existingVote.ad_id, existingVote.vote_type, 'decrement');
+            return await this.updateAdCounters(existingVote.ad_id, newVoteType, 'increment');
+        }
+    }
+
+    async updateAdCounters(adId, voteType, operation) {
+        const column = voteType === 'like' ? 'likes' : 'dislikes';
+        const value = operation === 'increment' ? 1 : -1;
+
+        const { data: ad, error: fetchError } = await this.supabase
+            .from('advertisements')
+            .select('likes, dislikes')
+            .eq('id', adId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        const updateData = {
+            [column]: Math.max(0, (ad[column] || 0) + value),
+            updated_at: new Date().toISOString()
+        };
+
+        const { error: updateError } = await this.supabase
+            .from('advertisements')
+            .update(updateData)
+            .eq('id', adId);
+
+        if (updateError) throw updateError;
+
+        return true;
+    }
+
+    // Получение категорий
+    getCategories() {
+        return this.categories;
+    }
+
+    // Загрузка голосов пользователя
+    async loadUserVotes(userId) {
+        try {
+            const { data, error } = await this.supabase
+                .from('votes')
+                .select('ad_id, vote_type')
+                .eq('user_id', userId);
+
+            if (error) throw error;
+
+            // Преобразуем в объект {adId: voteType}
+            const votes = {};
+            data.forEach(vote => {
+                votes[vote.ad_id] = vote.vote_type;
+            });
+
+            return votes;
+
+        } catch (error) {
+            console.error('Error loading user votes:', error);
+            return {};
+        }
+    }
+
+    // Увеличение счетчика просмотров
+    async incrementViews(adId) {
+        try {
+            const { data: ad, error: fetchError } = await this.supabase
+                .from('advertisements')
+                .select('views')
+                .eq('id', adId)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            const { error: updateError } = await this.supabase
+                .from('advertisements')
+                .update({
+                    views: (ad.views || 0) + 1,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', adId);
+
+            if (updateError) throw updateError;
+
+        } catch (error) {
+            console.error('Error incrementing views:', error);
+        }
+    }
+}
+
+// Создаем глобальный экземпляр менеджера базы данных
+const dbManager = new DatabaseManager();
+window.dbManager = dbManager;
